@@ -10,14 +10,17 @@ int board[4][4];
 // Up, Right, Down, Left.
 int dirRow[] = {1, 0, -1, 0};
 int dirCol[] = {0, 1, 0, -1};
-// int score; 
+// Keeping track of score. 
+int score; 
+int highscore;
 
 /**
  * Adds a 2 into a randomly generated position. 
 */
 void addPiece() {
     // Randomly chooses an empty position. 
-    int occupied = true, row, col;
+    bool occupied = true;
+    int row, col;
     while (occupied) {
         // Picks a random row and col.
         row = rand() % 4;
@@ -71,7 +74,8 @@ void printUI() {
     }
     // Controls for the game.
     cout << "Controls: WASD - Movement, n - New Game/Reset, q - Quit \n";
-    // cout << "Score: " << score << endl;
+    cout << "Score: " << score << endl;
+    cout << "Highscore: " << highscore << endl;
 }
 
 /**
@@ -101,11 +105,11 @@ void applyMove(int direction) {
         startCol = 3;
         colStep = -1;
     }
-    int movePossible;
-    int canAddPiece = 0;
+    bool movePossible;
+    bool canAddPiece = false;
     // Use of do while allows for movement of more than 1 square at a time. 
     do {
-        movePossible = 0;
+        movePossible = false;
         for (int i = startRow; i >= 0 &&  i < 4; i += rowStep) {
             for (int j = startCol; j >= 0 &&  j < 4; j += colStep) {
                 int nextRow = i + dirRow[direction];
@@ -113,13 +117,16 @@ void applyMove(int direction) {
                 // cout << i << " " << j << " " << nextRow << " " << nextCol << "\n";
                 // If move is possible, add the two slots and set previous to be 0. 
                 if(board[i][j] && canDoMove(i, j, nextRow, nextCol)){
+                    if(board[nextRow][nextCol] != 0){
+                        if(highscore <= score){
+                            highscore += (board[i][j] + board[nextRow][nextCol]);
+                        }
+                        score += (board[i][j] + board[nextRow][nextCol]);
+                    }
                     board[nextRow][nextCol] += board[i][j];
-                    // if(board[i][j] != 0) {
-                    //     score += board[nextRow][nextCol];
-                    // }
                     board[i][j] = 0;
-                    movePossible = 1;
-                    canAddPiece = 1;
+                    movePossible = true;
+                    canAddPiece = true;
                 }
             }
         } 
@@ -156,11 +163,15 @@ int main() {
         cin >> command;
         // Initialization. 
         if (command == 'n') {
+            // Resets scores between games. 
+            if(highscore < score) {
+                highscore = score;
+            }
+            score = 0;
             newGame();
         } 
         // Quit.
         else if (command == 'q') {
-            // score = 0;
             break;
         }
         // Movement.
